@@ -12,7 +12,10 @@ Any dead cell with exactly three live neighbors becomes a live cell, as if by re
 static int M = 10;
 static int N = 10;
 
-static int grid[10][10];
+static char grid[10][10];
+
+static int deaths = 0;
+static int births = 0;
 
 void initialize();
 void generate();
@@ -33,14 +36,13 @@ void initialize() {
     for (int i = 0; i < M; i++) {
         for (int j = 0; j < N; j++) {
 
-            float chance = rand() % 2; //implement random live cells
-            //figure out seed
+            float chance = (rand() % 10) / 10.0; //implement random live cells
 
-            if ((chance / 4.0) < 0.25) {
-                grid[i][j] = 1;
+            if (chance < 0.8) {
+                grid[i][j] = '*';
             }
             else {
-                grid[i][j] = 0;
+                grid[i][j] = '-';
             }
         }
     }
@@ -49,16 +51,16 @@ void initialize() {
 int countNeighbors(int i, int j) {
     int sum = 0;
 
-    if (grid[i - 1][j]) {
+    if (grid[i - 1][j] == '*') {
         sum++;
     }
-    if (grid[i + 1][j]) {
+    if (grid[i + 1][j] == '*') {
         sum++;
     }
-    if (grid[i][j - 1]) {
+    if (grid[i][j - 1] == '*') {
         sum++;
     }
-    if (grid[i][j + 1]) {
+    if (grid[i][j + 1] == '*') {
         sum++;
     }
 
@@ -70,21 +72,26 @@ void generate() {
     for (int i = 1; i < M - 1; i++) {
         for (int j = 1; j < N - 1; j++) {
             
-            int alive = grid[i][j];
+            bool alive = grid[i][j] == '*';
             int neighbors = countNeighbors(i, j); //check num of neighbors
 
             if (alive && (neighbors < 2)) {
-                grid[i][j] = 0;
+                grid[i][j] = '-';
+                deaths++;
             }
             if (alive && (neighbors == 2 || neighbors == 3)) {
-                grid[i][j] = 1;
+                grid[i][j] = '*';
             }
             if (alive && neighbors > 3) {
-                grid[i][j] = 0;
+                grid[i][j] = '-';
+                deaths++;
             }
             if (!alive && neighbors == 3) {
-                grid[i][j] = 1;
+                grid[i][j] = '*';
+                births++;
             }
+
+            //add perturbation
         }
     }
 }
@@ -93,13 +100,19 @@ void printLoop() {
 
     for (int i = 0; i < M; i++) {
         for (int j = 0; j < N; j++) {
-            printf("%d  ", grid[i][j]);
+            printf("%c  ", grid[i][j]);
         }
         printf("\n");
     }
-    printf("\n");
+    
+    puts("New deaths: ");
+    printf("%d\n", deaths);
+    puts("New births: ");
+    printf("%d\n", births);
 
-    //print alive and dead
+    deaths = 0;
+    births = 0;
 
     std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+    system("cls");
 }
